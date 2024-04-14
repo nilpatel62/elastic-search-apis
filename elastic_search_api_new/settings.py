@@ -21,12 +21,26 @@ BASE_DIR = Path(__file__).resolve().parent.parent
 
 
 # env_path = "/opt/UnderDogCrew/UnderdogCrew/env"
-env_path = "/Users/neelpatel/Desktop/elastic-search-auris/elastic-search-apis/env"
+print("BASE_DIR", BASE_DIR)
+env_path = str(BASE_DIR)+"/env"
 load_dotenv(dotenv_path=env_path)
 
 ELASTIC_URL = os.getenv("ELASTIC_URL")
+ELASTIC_PASSWORD = os.getenv("ELASTIC_PASSWORD")
+ELASTIC_USERNAME = os.getenv("ELASTIC_USERNAME")
+print("ELASTIC_URL", ELASTIC_URL)
+print("ELASTIC_USERNAME", ELASTIC_USERNAME)
 
-es_url=Elasticsearch([{'host':ELASTIC_URL,'port':9200}])
+es_url=Elasticsearch(
+    [
+        {
+            'host':ELASTIC_URL,
+            'port':9200,
+            'scheme': 'https',  # Add this line,
+        }
+    ],
+    http_auth= (ELASTIC_USERNAME, ELASTIC_PASSWORD)  # Basic Auth credentials
+)
 
 
 

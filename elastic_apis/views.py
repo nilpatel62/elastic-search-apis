@@ -31,7 +31,7 @@ class ElasticData(APIView):
     def get(self, request):
         try:
             skip = int(request.GET.get("skip", 0))
-            limit = int(request.GET.get("limit", 0))
+            limit = int(request.GET.get("limit", 10))
             search = request.GET.get("search", "")
             must_query = []
             if search != "":
@@ -43,7 +43,7 @@ class ElasticData(APIView):
                         "bool": {
                         }
                     },
-                    "size": skip,
+                    "size": skip * 10 + limit,
                     "from": limit,
                 }
             else:
@@ -55,7 +55,7 @@ class ElasticData(APIView):
                             "boost": 1.0,
                         }
                     },
-                    "size": skip,
+                    "size": skip * 10 + limit,
                     "from": limit,
                 }
             res_filter_parameters = es_url.search(

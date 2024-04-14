@@ -27,8 +27,11 @@ class ElasticData(APIView):
         Methods:
             get(self, request, skip, limit, search): Processes the GET request to search data in Elasticsearch.
     """
-    def get(self, request, skip, limit, search):
+    def get(self, request):
         try:
+            skip = int(request.GET.get("skip", 0))
+            limit = int(request.GET.get("limit", 0))
+            search = request.GET.get("search", "")
             must_query = []
             if search != "":
                 must_query.append({"match_phrase_prefix": {"hostname": search}})

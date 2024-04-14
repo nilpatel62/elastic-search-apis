@@ -39,7 +39,6 @@ es_url=Elasticsearch(
             'scheme': 'https',  # Add this line,
         }
     ],
-    use_ssl=True,
     verify_certs=False,  # Disable certificate verification
     http_auth= (ELASTIC_USERNAME, ELASTIC_PASSWORD)  # Basic Auth credentials
 )

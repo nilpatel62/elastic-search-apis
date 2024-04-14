@@ -1,6 +1,7 @@
 from rest_framework.views import APIView
 from django.http import HttpResponse, JsonResponse
 from elastic_search_api_new.settings import es_url
+import os
 
 
 # Create your views here.
@@ -36,7 +37,7 @@ class ElasticData(APIView):
             if search != "":
                 must_query.append({"match_phrase_prefix": {"hostname": search}})
 
-            if len(match_phrase_prefix) == 0:
+            if len(search_query) == 0:
                 search_query = {
                     "query": {
                         "bool": {

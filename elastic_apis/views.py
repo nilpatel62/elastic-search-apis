@@ -59,14 +59,14 @@ class ElasticData(APIView):
                     "from": limit,
                 }
             res_filter_parameters = es_url.search(
-                index="*",
+                index="filebeat-*",
                 body=search_query,
                 filter_path=[
                     "hits._id",
                     "hits._source.host",
                 ],
             )
-            print(res_filter_parameters)
+            print(search_query)
             if len(res_filter_parameters) == 0:
                 response = {"data": [], "message": "No Data Found"}
                 return JsonResponse(response, safe=False, status=404)

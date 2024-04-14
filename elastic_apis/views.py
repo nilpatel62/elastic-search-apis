@@ -40,6 +40,8 @@ class ElasticData(APIView):
             if len(must_query) == 0:
                 search_query = {
                     "query": {
+                        "bool": {
+                        }
                     },
                     "size": skip,
                     "from": limit,

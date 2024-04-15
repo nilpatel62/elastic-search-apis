@@ -40,8 +40,7 @@ class ElasticData(APIView):
             if len(must_query) == 0:
                 search_query = {
                     "query": {
-                        "bool": {
-                        }
+                        "match_all": {}
                     },
                     "size": skip * 10 + limit,
                     "from": limit,
@@ -58,8 +57,10 @@ class ElasticData(APIView):
                     "size": skip * 10 + limit,
                     "from": limit,
                 }
+            # Define the index name
+            index_name = "filebeat-*"
             res_filter_parameters = es_url.search(
-                index="filebeat-*",
+                index=index_name,
                 body=search_query,
                 filter_path=[
                     "hits._id",

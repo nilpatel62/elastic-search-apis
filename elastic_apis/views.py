@@ -43,7 +43,7 @@ class ElasticData(APIView):
                         "match_all": {}
                     },
                     "size": skip * 10 + limit,
-                    "from": 0,
+                    "from": skip,
                 }
             else:
                 search_query = {
@@ -55,7 +55,7 @@ class ElasticData(APIView):
                         }
                     },
                     "size": skip * 10 + limit,
-                    "from": limit,
+                    "from": skip,
                 }
             # Define the index name
             index_name = "*"

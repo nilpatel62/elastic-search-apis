@@ -62,11 +62,7 @@ class ElasticData(APIView):
 
             res_filter_parameters = es_url.search(
                 index=index_name,
-                body=search_query,
-                filter_path=[
-                    "hits._id",
-                    "hits._source.host",
-                ],
+                body=search_query
             )
             print(search_query)
             if len(res_filter_parameters) == 0:

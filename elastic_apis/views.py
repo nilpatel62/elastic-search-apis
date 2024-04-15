@@ -58,7 +58,7 @@ class ElasticData(APIView):
                     "from": limit,
                 }
             # Define the index name
-            index_name = "filebeat-*"
+            index_name = ".ds-filebeat-8.13.2-2024.04.11-000001"
 
             # Get the list of all indices
             indices = es_url.cat.indices(v=True, format='json')

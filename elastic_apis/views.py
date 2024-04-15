@@ -30,8 +30,8 @@ class ElasticData(APIView):
     """
     def get(self, request):
         try:
-            skip = int(request.GET.get("skip", 0))
-            limit = int(request.GET.get("limit", 10))
+            size = int(request.GET.get("size", 10))
+            page = int(request.GET.get("page", 0))
             search = request.GET.get("search", "")
             must_query = []
             if search != "":
@@ -42,8 +42,8 @@ class ElasticData(APIView):
                     "query": {
                         "match_all": {}
                     },
-                    "size": skip * 10 + limit,
-                    "from": skip,
+                    "size": skip,
+                    "from": skip * 10,
                 }
             else:
                 search_query = {
@@ -54,11 +54,11 @@ class ElasticData(APIView):
                             "boost": 1.0,
                         }
                     },
-                    "size": skip * 10 + limit,
-                    "from": skip,
+                    "size": skip,
+                    "from": skip * 10,
                 }
             # Define the index name
-            index_name = "*"
+            index_name = "filebeat-*"
 
             res_filter_parameters = es_url.search(
                 index=index_name,

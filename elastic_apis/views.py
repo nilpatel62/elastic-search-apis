@@ -64,7 +64,7 @@ class ElasticData(APIView):
                 index=index_name,
                 body=search_query
             )
-            print(search_query)
+            print(res_filter_parameters)
             if len(res_filter_parameters) == 0:
                 response = {"data": [], "message": "No Data Found"}
                 return JsonResponse(response, safe=False, status=404)

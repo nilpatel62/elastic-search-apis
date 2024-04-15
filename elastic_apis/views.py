@@ -42,8 +42,8 @@ class ElasticData(APIView):
                     "query": {
                         "match_all": {}
                     },
-                    "size": skip,
-                    "from": skip * 10,
+                    "size": size,
+                    "from": page * 10,
                 }
             else:
                 search_query = {
@@ -54,8 +54,8 @@ class ElasticData(APIView):
                             "boost": 1.0,
                         }
                     },
-                    "size": skip,
-                    "from": skip * 10,
+                    "size": size,
+                    "from": page * 10,
                 }
             # Define the index name
             index_name = "filebeat-*"

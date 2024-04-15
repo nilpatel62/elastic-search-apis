@@ -59,7 +59,13 @@ class ElasticData(APIView):
                 }
             # Define the index name
             index_name = "filebeat-*"
-            print(es_url)
+
+            # Get the list of all indices
+            indices = es_url.cat.indices(v=True, format='json')
+
+            # Print each index and its details
+            for index in indices:
+                print(index)
             res_filter_parameters = es_url.search(
                 index=index_name,
                 body=search_query,

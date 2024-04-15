@@ -59,6 +59,7 @@ class ElasticData(APIView):
                 }
             # Define the index name
             index_name = "filebeat-*"
+            print(es_url)
             res_filter_parameters = es_url.search(
                 index=index_name,
                 body=search_query,

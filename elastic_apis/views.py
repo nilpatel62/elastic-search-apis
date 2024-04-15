@@ -41,9 +41,7 @@ class ElasticData(APIView):
                 search_query = {
                     "query": {
                         "match_all": {}
-                    },
-                    "size": skip * 10 + limit,
-                    "from": limit,
+                    }
                 }
             else:
                 search_query = {
@@ -58,23 +56,13 @@ class ElasticData(APIView):
                     "from": limit,
                 }
             # Define the index name
-            index_name = ".ds-filebeat-8.13.2-2024.04.11-000001"
+            index_name = "*"
 
-            # Get the list of all indices
-            indices = es_url.cat.indices(v=True, format='json')
-
-            # Print each index and its details
-            for index in indices:
-                print(index)
             res_filter_parameters = es_url.search(
                 index=index_name,
-                body=search_query,
-                filter_path=[
-                    "hits._id",
-                    "hits._source.host",
-                ],
+                body=search_query
             )
-            print(search_query)
+            print(res_filter_parameters)
             if len(res_filter_parameters) == 0:
                 response = {"data": [], "message": "No Data Found"}
                 return JsonResponse(response, safe=False, status=404)

@@ -62,15 +62,19 @@ class ElasticData(APIView):
 
             res_filter_parameters = es_url.search(
                 index=index_name,
-                body=search_query
+                body=search_query,
+                filter_path=[
+                    "hits.hits._id",
+                    "hits.hits._source.host",
+                ],
             )
-            print(res_filter_parameters)
+            print(search_query)
             if len(res_filter_parameters) == 0:
                 response = {"data": [], "message": "No Data Found"}
                 return JsonResponse(response, safe=False, status=404)
             else:
                 response_data = []
-                for _res in res_filter_parameters['hits']:
+                for _res in res_filter_parameters['hits']['hits']:
                     response_data.append(
                         {
                             "id": _res['_id'],

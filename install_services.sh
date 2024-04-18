@@ -148,11 +148,43 @@ fi
 sudo systemctl enable filebeat
 sudo systemctl start filebeat
 
-# Confirm the Filebeat service is running
+# Check if the Filebeat service is running
 if systemctl status filebeat &> /dev/null; then
     echo "Filebeat service is running."
+
+    # Update Zeek module configuration if Filebeat starts successfully
+    FILEBEAT_MODULES_D="/etc/filebeat/modules.d"
+
+    # Ensure the modules.d directory exists
+    mkdir -p "$FILEBEAT_MODULES_D"
+
+    # Update Zeek module configuration
+    echo "Updating Zeek module configuration..."
+    sudo bash -c "cat > ${FILEBEAT_MODULES_D}/zeek.yml" << EOF
+# Zeek module configuration
+- module: zeek
+  # All logs
+  files:
+    enabled: true
+    var.paths: ["/var/log/zeek/files.log"]
+EOF
+
+    # Update Suricata module configuration
+    echo "Updating Suricata module configuration..."
+    sudo bash -c "cat > ${FILEBEAT_MODULES_D}/suricata.yml" << EOF
+# Suricata module configuration
+- module: suricata
+  # All logs
+  eve:
+    enabled: true
+    var.paths: ["/var/log/suricata/eve.json"]
+EOF
+
+    echo "Zeek configuration in Filebeat has been updated."
+
 else
     echo "Failed to start Filebeat service. Please check the status manually."
 fi
 
-echo "All containers are up and running."
+
+echo "All configurations and services have been updated and are running."

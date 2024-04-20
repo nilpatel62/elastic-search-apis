@@ -53,19 +53,6 @@ else
   echo "Elasticsearch password retrieved successfully."
 fi
 
-# Function to pull and run Docker images as containers
-pull_and_run_container() {
-  IMAGE_NAME=$1
-  CONTAINER_NAME=$2
-
-  # Pull the Docker image
-  echo "Pulling image ${IMAGE_NAME}..."
-  sudo docker pull ${IMAGE_NAME}
-
-  # Run the Docker container
-  echo "Running container ${CONTAINER_NAME}..."
-  sudo docker run -d --name ${CONTAINER_NAME} ${IMAGE_NAME}
-}
 
 # Define the path for the Zeek logs directory on the host
 ZEEK_LOGS_DIR="$(pwd)/zeek-logs"
@@ -98,7 +85,15 @@ docker run -d --rm -it --net=host --cap-add=net_admin --cap-add=net_raw --cap-ad
     $SURICATA_IMAGE -i docker0
 
 # Pull and run the Tshark container
-pull_and_run_container ${TSHARK_IMAGE} tshark
+TSHARK_LOGS_DIR="$(pwd)/tshark-logs"
+
+# Create the Zeek logs directory if it does not exist
+mkdir -p "$TSHARK_LOGS_DIR"
+
+echo "Starting Tshark container..."
+sudo docker run -d --name tshark \
+    -v "${TSHARK_LOGS_DIR}:/var/log/tshark-logs" \
+    ${TSHARK_IMAGE}
 
 # Install Filebeat
 echo "Installing Filebeat..."
@@ -130,6 +125,8 @@ filebeat.inputs:
   enabled: true
   paths:
     - /var/log/*.log
+    - /var/log/tshark-logs/*.log
+
 
 filebeat.config.modules:
   path: ${path.config}/modules.d/*.yml

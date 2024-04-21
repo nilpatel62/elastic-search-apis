@@ -3,6 +3,7 @@ from django.http import HttpResponse, JsonResponse
 from elastic_search_api_new.settings import es_url
 import os, sys
 import psutil
+import docker
 
 
 # Create your views here.
@@ -117,6 +118,37 @@ class SystemProcessData(APIView):
                 except psutil.AccessDenied:
                     # Skip this process if access is denied
                     pass
+
+            ## get the docker details
+            client = docker.from_env()
+
+            docker_processes = []
+
+            # Iterate over all containers
+            for container in client.containers.list():
+                container_id = container.id
+                container_name = container.name
+
+                # Get process information for the container
+                container_info = client.api.inspect_container(container_id)
+                processes = container_info['State']['Running']
+
+                # Add CPU usage information for each process
+                cpu_stats = container_info['CPUStats']
+                for process in processes:
+                    # Get the process ID
+                    process_id = process['Pid']
+                    # Search for the process in the CPU stats
+                    for stat in cpu_stats['cpu_usage']['percpu_usage']:
+                        if stat['pid'] == process_id:
+                            # Add CPU usage to the process information
+                            process['cpu_percent'] = stat['usage_in_usermode'] / cpu_stats['system_cpu_usage'] * 100
+
+                # Add process information to the list
+                running_services.append({
+                    'container_name': container_name,
+                    'processes': processes
+                })
 
             response = {"data": running_services, "message": "Data Found"}
             return JsonResponse(response, safe=False, status=200)

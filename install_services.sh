@@ -72,7 +72,7 @@ echo "Starting zeek container..."
 # Run Zeek in a Docker container with specified configurations
 sudo docker run -d --name zeek \
     -v "${ZEEK_LOGS_DIR}:/var/log/zeek" \
-    ${IMAGE_NAME}
+    ${ZEEK_IMAGE}
 
 # Pull and run the Suricata container
 SURICATA_LOG_DIR="$(pwd)/logs"

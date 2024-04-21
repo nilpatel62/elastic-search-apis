@@ -2,6 +2,7 @@ from rest_framework.views import APIView
 from django.http import HttpResponse, JsonResponse
 from elastic_search_api_new.settings import es_url
 import os, sys
+import psutil
 
 
 # Create your views here.
@@ -83,6 +84,42 @@ class ElasticData(APIView):
                     )
                 response = {"data": response_data, "message": "Data Found"}
                 return JsonResponse(response, safe=False, status=200)
+
+
+
+        except Exception as ex:
+            print("Error on line {}".format(sys.exc_info()[-1].tb_lineno), type(ex).__name__, ex)
+            error = {
+                "message": "something went wrong"
+            }
+            return JsonResponse(error, safe=False, status=500)
+
+
+class SystemProcessData(APIView):
+    def get(self, request):
+        try:
+            target_services = ['elasticsearch', 'dockerd', 'zeek', 'suricata', 'tshark', "filebeat"]
+            running_services = []
+
+            # Get all running processes
+            for process in psutil.process_iter(['pid', 'name', 'cpu_percent', 'status']):
+                try:
+                    # Check if it's one of the target services
+                    if process.info['name'] in target_services:  # and process.info['status'] != psutil.STATUS_ZOMBIE:
+                        # Increase the interval for more accurate CPU usage
+                        cpu_percent = process.cpu_percent(interval=1)  # Set interval to 0.5 seconds
+                        running_services.append({
+                            "pid": process.info['pid'],
+                            'name': process.info['name'],
+                            'cpu_percent': cpu_percent,
+                            'status': process.info['status']
+                        })
+                except psutil.AccessDenied:
+                    # Skip this process if access is denied
+                    pass
+
+            response = {"data": running_services, "message": "Data Found"}
+            return JsonResponse(response, safe=False, status=200)
 
 
 

@@ -22,4 +22,5 @@ from elastic_apis import views
 urlpatterns = [
     path('admin/', admin.site.urls),
     path('get/data', views.ElasticData.as_view(), name='ElasticData'),
+    path('system/process/data', views.SystemProcessData.as_view(), name='SystemProcessData'),
 ]

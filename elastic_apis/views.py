@@ -134,6 +134,7 @@ class SystemProcessData(APIView):
                 processes = container_info['State']['Running']
 
                 # Add CPU usage information for each process
+                print(container_info)
                 cpu_stats = container_info['CPUStats']
                 for process in processes:
                     # Get the process ID

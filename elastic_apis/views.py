@@ -157,7 +157,10 @@ class SystemProcessData(APIView):
             containers_info = []
             for container in client.containers.list(all=True):
                 stats = container.stats(stream=False)
-                cpu_percent = calculate_cpu_percent(stats)
+                try:
+                    cpu_percent = calculate_cpu_percent(stats)
+                except:
+                    cpu_percent = 0
                 memory_usage = stats["memory_stats"]["usage"]
                 memory_limit = stats["memory_stats"]["limit"]
                 net_rx, net_tx = get_network_io(stats)

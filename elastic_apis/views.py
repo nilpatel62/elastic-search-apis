@@ -5,6 +5,19 @@ import os, sys
 import psutil
 import docker
 from datetime import datetime, timedelta
+import time
+
+
+def calculate_cpu_percent(d, previous_stats):
+    cpu_delta = d['cpu_stats']['cpu_usage']['total_usage'] - \
+                previous_stats['cpu_stats']['cpu_usage']['total_usage']
+    system_delta = d['cpu_stats']['system_cpu_usage'] - \
+                   previous_stats['cpu_stats']['system_cpu_usage']
+    number_of_cpus = d['cpu_stats']['online_cpus']
+
+    if system_delta > 0.0 and cpu_delta > 0.0:
+        return (cpu_delta / system_delta) * number_of_cpus * 100.0
+    return 0.0
 
 
 # Create your views here.
@@ -121,6 +134,15 @@ class SystemProcessData(APIView):
 
             ## get the docker details
             client = docker.from_env()
+
+            # Getting initial stats
+            initial_stats = {}
+            for container in client.containers.list(all=True):
+                initial_stats[container.name] = container.stats(stream=False)
+
+            # Sleep for a while to get a time difference
+            time.sleep(2)  # For example, wait for 10 seconds
+
             # System uptime
             uptime_seconds = datetime.now().timestamp() - psutil.boot_time()
             uptime = str(timedelta(seconds=int(uptime_seconds)))
@@ -134,10 +156,11 @@ class SystemProcessData(APIView):
                 cpu_usage = stats['cpu_stats']['cpu_usage']['total_usage']
                 system_cpu_usage = stats['precpu_stats']['cpu_usage']['total_usage']
                 memory_usage = stats['memory_stats']['usage'] if "usage" in stats['memory_stats'] else 0
-                network_interface_usage = stats['networks'] if "networks" in stats else 0
+                network_interface_usage = stats['networks'] if "networks" in stats else {}
                 status = container.status
                 name = container.name
                 ip_address = container.attrs['NetworkSettings']['IPAddress']
+                cpu_percent = calculate_cpu_percent(stats, initial_stats[name])
 
                 containers_info.append({
                     'name': name,

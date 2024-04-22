@@ -4,6 +4,7 @@ from elastic_search_api_new.settings import es_url
 import os, sys
 import psutil
 import docker
+from datetime import datetime, timedelta
 
 
 # Create your views here.
@@ -100,7 +101,7 @@ class SystemProcessData(APIView):
     def get(self, request):
         try:
             target_services = ['elasticsearch', 'dockerd', 'zeek', 'suricata', 'tshark', "filebeat"]
-            running_services = []
+            containers_info = []
 
             # Get all running processes
             for process in psutil.process_iter(['pid', 'name', 'cpu_percent', 'status']):
@@ -109,7 +110,7 @@ class SystemProcessData(APIView):
                     if process.info['name'] in target_services:  # and process.info['status'] != psutil.STATUS_ZOMBIE:
                         # Increase the interval for more accurate CPU usage
                         cpu_percent = process.cpu_percent(interval=1)  # Set interval to 0.5 seconds
-                        running_services.append({
+                        containers_info.append({
                             "pid": process.info['pid'],
                             'name': process.info['name'],
                             'status': process.info['status']
@@ -120,26 +121,35 @@ class SystemProcessData(APIView):
 
             ## get the docker details
             client = docker.from_env()
+            # System uptime
+            uptime_seconds = datetime.now().timestamp() - psutil.boot_time()
+            uptime = str(timedelta(seconds=int(uptime_seconds)))
 
             docker_processes = []
 
             # Iterate over all containers
-            for container in client.containers.list():
-                container_id = container.id
-                container_name = container.name
+            for container in client.containers.list(all=True):
+                stats = container.stats(stream=False)
+                print(stats)
+                cpu_usage = stats['cpu_stats']['cpu_usage']['total_usage']
+                system_cpu_usage = stats['precpu_stats']['cpu_usage']['total_usage']
+                memory_usage = stats['memory_stats']['usage'] if "usage" in stats['memory_stats'] else 0
+                network_interface_usage = stats['networks'] if "networks" in stats else 0
+                status = container.status
+                name = container.name
+                ip_address = container.attrs['NetworkSettings']['IPAddress']
 
-                # Get process information for the container
-                container_info = client.api.inspect_container(container_id)
-                status = container_info['State']['Status']
-
-                # Add process information to the list
-                running_services.append({
-                    "pid": container_info['State']['Pid'],
-                    'name': container_name,
-                    'status': status
+                containers_info.append({
+                    'name': name,
+                    'status': status,
+                    'cpu_usage': cpu_usage,
+                    'system_cpu_usage': system_cpu_usage,
+                    'memory_usage': memory_usage,
+                    'network_usage': network_interface_usage,
+                    'ip_address': ip_address
                 })
 
-            response = {"data": running_services, "message": "Data Found"}
+            response = {"data": running_services, "message": "Data Found", "system_up_time": uptime}
             return JsonResponse(response, safe=False, status=200)
 
 

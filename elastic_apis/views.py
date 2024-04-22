@@ -161,6 +161,15 @@ class SystemProcessData(APIView):
                     'pids': pids
                 })
 
+            # Print formatted stats like the docker stats command
+            print(f"{'NAME':<15} {'CPU %':<10} {'MEM USAGE / LIMIT':<20} {'NET I/O':<20} {'BLOCK I/O':<15} {'PIDS':<5}")
+            for info in containers_info:
+                mem_usage_limit = f"{info['memory_usage'] / (1024 ** 3):.2f}GiB / {info['memory_limit'] / (1024 ** 3):.2f}GiB"
+                net_io = f"{info['net_io'][0] / (1024 ** 2):.2f}MB / {info['net_io'][1] / (1024 ** 2):.2f}MB"
+                block_io = f"{info['block_io'][0] / (1024 ** 2):.2f}MB / {info['block_io'][1] / (1024 ** 2):.2f}MB"
+                print(
+                    f"{info['name']:<15} {info['cpu_percent']:<10.2f} {mem_usage_limit:<20} {net_io:<20} {block_io:<15} {info['pids']:<5}")
+
             response = {"data": containers_info, "message": "Data Found", "system_up_time": uptime}
             return JsonResponse(response, safe=False, status=200)
 

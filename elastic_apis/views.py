@@ -10,6 +10,7 @@ import time
 
 # Function to calculate CPU percentage
 def calculate_cpu_percent(d):
+    print(d["cpu_stats"])
     try:
         cpu_count = len(d["cpu_stats"]["cpu_usage"]["percpu_usage"])
     except:
@@ -28,6 +29,10 @@ def calculate_cpu_percent(d):
 
     cpu_delta = float(d["cpu_stats"]["cpu_usage"]["total_usage"]) - float(precpu_stats)
     system_delta = float(d["cpu_stats"]["system_cpu_usage"]) - system_cpu_usage
+
+    print("system_delta", system_delta)
+    print("cpu_delta", cpu_delta)
+
     if system_delta > 0.0 and cpu_delta > 0.0:
         try:
             cpu_percent = (cpu_delta / system_delta) * cpu_count * 100.0
@@ -157,7 +162,12 @@ class SystemProcessData(APIView):
             containers_info = []
             for container in client.containers.list(all=True):
                 stats = container.stats(stream=False)
-                print(stats)
+
+                # Some stats may not be immediately available for new containers
+                if 'precpu_stats' not in stats or not stats['precpu_stats']:
+                    time.sleep(1)  # Wait a second before retrying
+                    stats = container.stats(stream=False)
+
                 try:
                     cpu_percent = calculate_cpu_percent(stats)
                 except Exception as ex:

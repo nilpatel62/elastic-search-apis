@@ -142,7 +142,10 @@ class SystemProcessData(APIView):
                 print(stats)
                 cpu_usage = stats['cpu_stats']['cpu_usage']['total_usage']
                 system_cpu_usage = stats['precpu_stats']['cpu_usage']['total_usage']
-                memory_usage, memory_percent = get_memory_usage(stats)
+                try:
+                    memory_usage, memory_percent = get_memory_usage(stats)
+                except:
+                    memory_usage, memory_percent = 0, 0
                 network_interface_usage = stats['networks'] if "networks" in stats else {}
                 status = container.status
                 name = container.name
@@ -155,6 +158,7 @@ class SystemProcessData(APIView):
                     'cpu_usage': cpu_usage,
                     'system_cpu_usage': cpu_percent,
                     'memory_usage': memory_usage,
+                    'memory_percent': memory_percent,
                     'network_usage': network_interface_usage,
                     'ip_address': ip_address
                 })

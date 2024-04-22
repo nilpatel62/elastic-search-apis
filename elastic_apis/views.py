@@ -12,7 +12,7 @@ import time
 def calculate_cpu_percent(d):
     print(d["cpu_stats"])
     try:
-        cpu_count = len(d["cpu_stats"]["cpu_usage"]["percpu_usage"])
+        cpu_count = d["cpu_stats"]["online_cpus"]
     except:
         cpu_count = 0
     cpu_percent = 0.0

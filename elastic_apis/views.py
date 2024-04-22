@@ -157,6 +157,7 @@ class SystemProcessData(APIView):
             containers_info = []
             for container in client.containers.list(all=True):
                 stats = container.stats(stream=False)
+                print(stats)
                 try:
                     cpu_percent = calculate_cpu_percent(stats)
                 except Exception as ex:

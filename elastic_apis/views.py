@@ -161,8 +161,8 @@ class SystemProcessData(APIView):
                     cpu_percent = calculate_cpu_percent(stats)
                 except:
                     cpu_percent = 0
-                memory_usage = stats["memory_stats"]["usage"]
-                memory_limit = stats["memory_stats"]["limit"]
+                memory_usage = stats["memory_stats"]["usage"] if "usage" in stats['memory_stats'] else 0
+                memory_limit = stats["memory_stats"]["limit"] if "limit" in stats['memory_stats'] else 0
                 net_rx, net_tx = get_network_io(stats)
                 block_read, block_write = stats["blkio_stats"]["io_service_bytes_recursive"][0]["value"], \
                                           stats["blkio_stats"]["io_service_bytes_recursive"][1]["value"]

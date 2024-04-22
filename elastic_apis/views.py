@@ -149,7 +149,7 @@ class SystemProcessData(APIView):
                     'ip_address': ip_address
                 })
 
-            response = {"data": running_services, "message": "Data Found", "system_up_time": uptime}
+            response = {"data": containers_info, "message": "Data Found", "system_up_time": uptime}
             return JsonResponse(response, safe=False, status=200)
 
 

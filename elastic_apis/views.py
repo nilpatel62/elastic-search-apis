@@ -11,8 +11,7 @@ import time
 def calculate_cpu_percent(d, previous_stats):
     cpu_delta = d['cpu_stats']['cpu_usage']['total_usage'] - \
                 previous_stats['cpu_stats']['cpu_usage']['total_usage']
-    system_delta = d['cpu_stats']['system_cpu_usage'] - \
-                   previous_stats['cpu_stats']['system_cpu_usage']
+    system_delta = d['precpu_stats']['cpu_usage']['total_usage'] - previous_stats['precpu_stats']['cpu_usage']['total_usage']
     number_of_cpus = d['cpu_stats']['online_cpus']
 
     if system_delta > 0.0 and cpu_delta > 0.0:

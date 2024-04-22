@@ -121,14 +121,14 @@ class SystemProcessData(APIView):
         try:
             ## get the docker details
             client = docker.from_env()
-
+            containers_info = []
             # Getting initial stats
             initial_stats = {}
             for container in client.containers.list(all=True):
                 initial_stats[container.name] = container.stats(stream=False)
 
             # Sleep for a while to get a time difference
-            time.sleep(2)  # For example, wait for 10 seconds
+            time.sleep(1)  # For example, wait for 10 seconds
 
             # System uptime
             uptime_seconds = datetime.now().timestamp() - psutil.boot_time()

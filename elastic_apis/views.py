@@ -159,7 +159,8 @@ class SystemProcessData(APIView):
                 stats = container.stats(stream=False)
                 try:
                     cpu_percent = calculate_cpu_percent(stats)
-                except:
+                except Exception as ex:
+                    print("Error on line {}".format(sys.exc_info()[-1].tb_lineno), type(ex).__name__, ex)
                     cpu_percent = 0
                 memory_usage = stats["memory_stats"]["usage"] if "usage" in stats['memory_stats'] else 0
                 memory_limit = stats["memory_stats"]["limit"] if "limit" in stats['memory_stats'] else 0
@@ -173,8 +174,8 @@ class SystemProcessData(APIView):
                 name = container.name
 
                 containers_info.append({
-                    'name': f"{name:<15}",
-                    'cpu_percent': f"{cpu_percent:<10.2f}",
+                    'name': f"{name}",
+                    'cpu_percent': f"{cpu_percent}",
                     'memory_usage': f"{memory_usage / (1024 ** 3):.2f}GiB",
                     'memory_limit': f"{memory_limit / (1024 ** 3):.2f}GiB",
                     'net_io': f"{net_rx / (1024 ** 2):.2f}MB / {net_tx / (1024 ** 2):.2f}MB",

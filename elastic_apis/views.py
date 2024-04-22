@@ -19,6 +19,13 @@ def calculate_cpu_percent(d, previous_stats):
     return 0.0
 
 
+def get_memory_usage(container_stats):
+    memory_usage = container_stats['memory_stats']['usage'] if "usage" in container_stats['memory_stats'] else 0
+    max_memory = container_stats['memory_stats']['limit'] if "limit" in container_stats['memory_stats'] else 0
+    memory_percent = (memory_usage / max_memory) * 100
+    return memory_usage, memory_percent
+
+
 # Create your views here.
 class ElasticData(APIView):
     """
@@ -112,25 +119,6 @@ class ElasticData(APIView):
 class SystemProcessData(APIView):
     def get(self, request):
         try:
-            target_services = ['elasticsearch', 'dockerd', 'zeek', 'suricata', 'tshark', "filebeat"]
-            containers_info = []
-
-            # Get all running processes
-            for process in psutil.process_iter(['pid', 'name', 'cpu_percent', 'status']):
-                try:
-                    # Check if it's one of the target services
-                    if process.info['name'] in target_services:  # and process.info['status'] != psutil.STATUS_ZOMBIE:
-                        # Increase the interval for more accurate CPU usage
-                        cpu_percent = process.cpu_percent(interval=1)  # Set interval to 0.5 seconds
-                        containers_info.append({
-                            "pid": process.info['pid'],
-                            'name': process.info['name'],
-                            'status': process.info['status']
-                        })
-                except psutil.AccessDenied:
-                    # Skip this process if access is denied
-                    pass
-
             ## get the docker details
             client = docker.from_env()
 
@@ -154,7 +142,7 @@ class SystemProcessData(APIView):
                 print(stats)
                 cpu_usage = stats['cpu_stats']['cpu_usage']['total_usage']
                 system_cpu_usage = stats['precpu_stats']['cpu_usage']['total_usage']
-                memory_usage = stats['memory_stats']['usage'] if "usage" in stats['memory_stats'] else 0
+                memory_usage, memory_percent = get_memory_usage(stats)
                 network_interface_usage = stats['networks'] if "networks" in stats else {}
                 status = container.status
                 name = container.name
@@ -165,7 +153,7 @@ class SystemProcessData(APIView):
                     'name': name,
                     'status': status,
                     'cpu_usage': cpu_usage,
-                    'system_cpu_usage': system_cpu_usage,
+                    'system_cpu_usage': cpu_percent,
                     'memory_usage': memory_usage,
                     'network_usage': network_interface_usage,
                     'ip_address': ip_address

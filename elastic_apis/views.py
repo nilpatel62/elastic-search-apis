@@ -38,7 +38,7 @@ def calculate_cpu_percent(d):
 
 # Function to get network I/O
 def get_network_io(d):
-    networks = d["networks"]
+    networks = d["networks"] if "networks" in d else {}
     total_rx, total_tx = 0, 0
     for net in networks.values():
         total_rx += net["rx_bytes"]

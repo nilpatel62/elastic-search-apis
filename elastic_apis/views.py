@@ -10,6 +10,7 @@ import time
 
 # Function to calculate CPU percentage
 def calculate_cpu_percent(d):
+    print(d)
     cpu_count = len(d["cpu_stats"]["cpu_usage"]["percpu_usage"])
     cpu_percent = 0.0
     try:

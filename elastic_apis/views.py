@@ -8,16 +8,27 @@ from datetime import datetime, timedelta
 import time
 
 
-def calculate_cpu_percent(d, previous_stats):
-    cpu_delta = d['cpu_stats']['cpu_usage']['total_usage'] - \
-                previous_stats['cpu_stats']['cpu_usage']['total_usage']
-    system_delta = d['precpu_stats']['cpu_usage']['total_usage'] - previous_stats['precpu_stats']['cpu_usage']['total_usage']
-    number_of_cpus = d['cpu_stats']['online_cpus'] if "online_cpus" in d['cpu_stats'] else 0
-
+# Function to calculate CPU percentage
+def calculate_cpu_percent(d):
+    cpu_count = len(d["cpu_stats"]["cpu_usage"]["percpu_usage"])
+    cpu_percent = 0.0
+    cpu_delta = float(d["cpu_stats"]["cpu_usage"]["total_usage"]) - \
+                float(d["precpu_stats"]["cpu_usage"]["total_usage"])
+    system_delta = float(d["cpu_stats"]["system_cpu_usage"]) - \
+                   float(d["precpu_stats"]["system_cpu_usage"])
     if system_delta > 0.0 and cpu_delta > 0.0:
-        return (cpu_delta / system_delta) * number_of_cpus * 100.0
-    return 0.0
+        cpu_percent = (cpu_delta / system_delta) * cpu_count * 100.0
+    return cpu_percent
 
+
+# Function to get network I/O
+def get_network_io(d):
+    networks = d["networks"]
+    total_rx, total_tx = 0, 0
+    for net in networks.values():
+        total_rx += net["rx_bytes"]
+        total_tx += net["tx_bytes"]
+    return total_rx, total_tx
 
 def get_memory_usage(container_stats):
     memory_usage = container_stats['memory_stats']['usage'] if "usage" in container_stats['memory_stats'] else 0
@@ -122,45 +133,32 @@ class SystemProcessData(APIView):
             ## get the docker details
             client = docker.from_env()
             containers_info = []
-            # Getting initial stats
-            initial_stats = {}
-            for container in client.containers.list(all=True):
-                initial_stats[container.name] = container.stats(stream=False)
-
-            # Sleep for a while to get a time difference
-            time.sleep(1)  # For example, wait for 10 seconds
 
             # System uptime
             uptime_seconds = datetime.now().timestamp() - psutil.boot_time()
             uptime = str(timedelta(seconds=int(uptime_seconds)))
 
-            docker_processes = []
-
-            # Iterate over all containers
+            # Get details for each container
+            containers_info = []
             for container in client.containers.list(all=True):
                 stats = container.stats(stream=False)
-                print(stats)
-                cpu_usage = stats['cpu_stats']['cpu_usage']['total_usage']
-                system_cpu_usage = stats['precpu_stats']['cpu_usage']['total_usage']
-                try:
-                    memory_usage, memory_percent = get_memory_usage(stats)
-                except:
-                    memory_usage, memory_percent = 0, 0
-                network_interface_usage = stats['networks'] if "networks" in stats else {}
-                status = container.status
+                cpu_percent = calculate_cpu_percent(stats)
+                memory_usage = stats["memory_stats"]["usage"]
+                memory_limit = stats["memory_stats"]["limit"]
+                net_rx, net_tx = get_network_io(stats)
+                block_read, block_write = stats["blkio_stats"]["io_service_bytes_recursive"][0]["value"], \
+                                          stats["blkio_stats"]["io_service_bytes_recursive"][1]["value"]
+                pids = stats["pids_stats"]["current"]
                 name = container.name
-                ip_address = container.attrs['NetworkSettings']['IPAddress']
-                cpu_percent = calculate_cpu_percent(stats, initial_stats[name])
 
                 containers_info.append({
                     'name': name,
-                    'status': status,
-                    'cpu_usage': cpu_usage,
-                    'system_cpu_usage': cpu_percent,
+                    'cpu_percent': cpu_percent,
                     'memory_usage': memory_usage,
-                    'memory_percent': memory_percent,
-                    'network_usage': network_interface_usage,
-                    'ip_address': ip_address
+                    'memory_limit': memory_limit,
+                    'net_io': (net_rx, net_tx),
+                    'block_io': (block_read, block_write),
+                    'pids': pids
                 })
 
             response = {"data": containers_info, "message": "Data Found", "system_up_time": uptime}

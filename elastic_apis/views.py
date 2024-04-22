@@ -174,9 +174,9 @@ class SystemProcessData(APIView):
 
                 containers_info.append({
                     'name': f"{name:<15}",
-                    'cpu_percent': f"{info['cpu_percent']:<10.2f}",
-                    'memory_usage': f"{info['memory_usage'] / (1024 ** 3):.2f}GiB",
-                    'memory_limit': f"{info['memory_limit'] / (1024 ** 3):.2f}GiB",
+                    'cpu_percent': f"{cpu_percent:<10.2f}",
+                    'memory_usage': f"{memory_usage / (1024 ** 3):.2f}GiB",
+                    'memory_limit': f"{memory_limit / (1024 ** 3):.2f}GiB",
                     'net_io': f"{net_rx / (1024 ** 2):.2f}MB / {net_tx / (1024 ** 2):.2f}MB",
                     'block_io': f"{block_read / (1024 ** 2):.2f}MB / {block_write / (1024 ** 2):.2f}MB",
                     'pids': pids

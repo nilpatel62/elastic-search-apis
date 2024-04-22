@@ -169,7 +169,7 @@ class SystemProcessData(APIView):
                                               stats["blkio_stats"]["io_service_bytes_recursive"][1]["value"]
                 except:
                     block_read, block_write = 0, 0
-                pids = stats["pids_stats"]["current"]
+                pids = stats["pids_stats"]["current"] if "current" in stats["pids_stats"] else 0
                 name = container.name
 
                 containers_info.append({

@@ -35,7 +35,7 @@ def calculate_cpu_percent(d):
 
     if system_delta > 0.0 and cpu_delta > 0.0:
         try:
-            cpu_percent = (cpu_delta / system_delta) * cpu_count * 100.0
+            cpu_percent = round((cpu_delta / system_delta) * cpu_count * 100.0, 2)
         except:
             cpu_percent = 0
     return cpu_percent
@@ -184,14 +184,24 @@ class SystemProcessData(APIView):
                 pids = stats["pids_stats"]["current"] if "current" in stats["pids_stats"] else 0
                 name = container.name
 
+                # Get IP address
+                ip_address = container.attrs['NetworkSettings']['IPAddress']
+                if not ip_address:  # IPAddress might be an empty string if the container is not using the default bridge network
+                    # If the container is connected to a user-defined network, fetch the IP from the Networks section
+                    networks = container.attrs['NetworkSettings']['Networks']
+                    if networks:
+                        # Get the IP address from the first available network
+                        ip_address = list(networks.values())[0]['IPAddress']
+
                 containers_info.append({
                     'name': f"{name}",
-                    'cpu_percent': f"{cpu_percent}:<10.2f",
+                    'cpu_percent': f"{cpu_percent}",
                     'memory_usage': f"{memory_usage / (1024 ** 3):.2f}GiB",
                     'memory_limit': f"{memory_limit / (1024 ** 3):.2f}GiB",
                     'net_io': f"{net_rx / (1024 ** 2):.2f}MB / {net_tx / (1024 ** 2):.2f}MB",
                     'block_io': f"{block_read / (1024 ** 2):.2f}MB / {block_write / (1024 ** 2):.2f}MB",
-                    'pids': pids
+                    'pids': pids,
+                    "ip_address": ip_address
                 })
 
             response = {"data": containers_info, "message": "Data Found", "system_up_time": uptime}

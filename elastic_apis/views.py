@@ -183,6 +183,7 @@ class SystemProcessData(APIView):
                     block_read, block_write = 0, 0
                 pids = stats["pids_stats"]["current"] if "current" in stats["pids_stats"] else 0
                 name = container.name
+                id = container.id
 
                 # Get IP address
                 ip_address = container.attrs['NetworkSettings']['IPAddress']
@@ -195,6 +196,7 @@ class SystemProcessData(APIView):
 
                 containers_info.append({
                     'name': f"{name}",
+                    "id": f"{id}",
                     'cpu_percent': f"{cpu_percent}",
                     'memory_usage': f"{memory_usage / (1024 ** 3):.2f}GiB",
                     'memory_limit': f"{memory_limit / (1024 ** 3):.2f}GiB",
@@ -208,6 +210,44 @@ class SystemProcessData(APIView):
             return JsonResponse(response, safe=False, status=200)
 
 
+
+        except Exception as ex:
+            print("Error on line {}".format(sys.exc_info()[-1].tb_lineno), type(ex).__name__, ex)
+            error = {
+                "message": "something went wrong"
+            }
+            return JsonResponse(error, safe=False, status=500)
+
+
+    def post(self, request):
+        try:
+            data = request.data
+
+            if len(data) == 0:
+                error = {
+                    "message": "request body is missing"
+                }
+                return JsonResponse(error, safe=False, status=400)
+
+            ## get the docker details
+            client = docker.from_env()
+            containers_info = data['conainer_ids']
+            for _ids in containers_info:
+                try:
+                    # Find the container by name
+                    container = client.containers.get(_ids)
+                    print(f"Restarting container: {container.name}")
+                    container.restart()  # Restart the container
+                    print(f"Container {container.name} has been restarted successfully.")
+                except docker.errors.NotFound:
+                    print(f"No container with the id '{_ids}' was found.")
+                except docker.errors.APIError as e:
+                    print(f"An error occurred while trying to restart the container '{_ids}': {e}")
+
+            response = {
+                "message": "Successfully restarted"
+            }
+            return JsonResponse(response, safe=False, status=200)
 
         except Exception as ex:
             print("Error on line {}".format(sys.exc_info()[-1].tb_lineno), type(ex).__name__, ex)

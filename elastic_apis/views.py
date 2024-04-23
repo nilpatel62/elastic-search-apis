@@ -184,6 +184,8 @@ class SystemProcessData(APIView):
                 pids = stats["pids_stats"]["current"] if "current" in stats["pids_stats"] else 0
                 name = container.name
                 id = container.id
+                # Get container status
+                status = container.status
 
                 # Get IP address
                 ip_address = container.attrs['NetworkSettings']['IPAddress']
@@ -193,9 +195,10 @@ class SystemProcessData(APIView):
                     if networks:
                         # Get the IP address from the first available network
                         ip_address = list(networks.values())[0]['IPAddress']
-                print(stats)
+
                 containers_info.append({
                     'name': f"{name}",
+                    'status': f"{status}",
                     "id": f"{id}",
                     'cpu_percent': f"{cpu_percent}",
                     'memory_usage': f"{memory_usage / (1024 ** 3):.2f}GiB",

@@ -231,7 +231,7 @@ class SystemProcessData(APIView):
 
             ## get the docker details
             client = docker.from_env()
-            containers_info = data['conainer_ids']
+            containers_info = data['container_ids']
             for _ids in containers_info:
                 try:
                     # Find the container by name

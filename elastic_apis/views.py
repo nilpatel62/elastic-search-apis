@@ -193,7 +193,7 @@ class SystemProcessData(APIView):
                     if networks:
                         # Get the IP address from the first available network
                         ip_address = list(networks.values())[0]['IPAddress']
-
+                print(stats)
                 containers_info.append({
                     'name': f"{name}",
                     "id": f"{id}",

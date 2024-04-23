@@ -29,7 +29,7 @@ sudo systemctl enable docker
 
 
 # Pull and run Elasticsearch container, binding to all network interfaces
-sudo docker run -d --name elasticsearch --net elastic \
+sudo docker run -d --name DB --net elastic \
     -p 0.0.0.0:9200:9200 \
     -p 0.0.0.0:9300:9300 \
     -e "discovery.type=single-node" \
@@ -43,7 +43,7 @@ sleep 120  # Wait 30 seconds. Adjust this timing as necessary.
 
 # Generate passwords for Elasticsearch
 echo "Generating passwords for Elasticsearch..."
-PASSWORD=$(sudo docker exec elasticsearch bin/elasticsearch-setup-passwords auto --batch | grep "PASSWORD elastic =" | awk '{print $4}')
+PASSWORD=$(sudo docker exec DB bin/elasticsearch-setup-passwords auto --batch | grep "PASSWORD elastic =" | awk '{print $4}')
 
 # Check if the password was retrieved
 if [ -z "$PASSWORD" ]; then
@@ -70,7 +70,7 @@ FILEBEAT_IMAGE="elastic/filebeat"  # replace with the specific version you need
 # Pull and run the Zeek container
 echo "Starting zeek container..."
 # Run Zeek in a Docker container with specified configurations
-sudo docker run -d --name zeek \
+sudo docker run -d --name Engine-1 \
     -v "${ZEEK_LOGS_DIR}:/var/log/zeek" \
     ${ZEEK_IMAGE}
 
@@ -80,7 +80,7 @@ mkdir -p "$SURICATA_LOG_DIR"
 
 # Run Suricata container with specified options
 echo "Starting Suricata container..."
-docker run -d --rm -it --net=host --cap-add=net_admin --cap-add=net_raw --cap-add=sys_nice \
+docker run -d --rm --name Engine-2 -it --net=host --cap-add=net_admin --cap-add=net_raw --cap-add=sys_nice \
     -v "${LOG_DIR}:/var/log/suricata" \
     $SURICATA_IMAGE -i docker0
 
@@ -91,7 +91,7 @@ TSHARK_LOGS_DIR="$(pwd)/tshark-logs"
 mkdir -p "$TSHARK_LOGS_DIR"
 
 echo "Starting Tshark container..."
-sudo docker run -d --name tshark \
+sudo docker run -d --name Engine-3 \
     -v "${TSHARK_LOGS_DIR}:/var/log/tshark-logs" \
     ${TSHARK_IMAGE}
 

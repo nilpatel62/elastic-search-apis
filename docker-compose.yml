@@ -1,0 +1,16 @@
+version: "2"
+services:
+  django:
+    container_name: elastic_apis
+    build:
+      context: .
+      dockerfile: Dockerfile
+    image: elastic_apis
+    stdin_open: true
+    tty: true
+    ports:
+      - "8000:8000"
+    logging:
+      options:
+        max-size: "1m"
+        max-file: "3"

@@ -23,4 +23,5 @@ urlpatterns = [
     path('admin/', admin.site.urls),
     path('get/data', views.ElasticData.as_view(), name='ElasticData'),
     path('system/process/data', views.SystemProcessData.as_view(), name='SystemProcessData'),
+    path('system/data', views.SystemData.as_view(), name='SystemData'),
 ]

@@ -4,6 +4,7 @@ from elastic_search_api_new.settings import es_url
 import os, sys
 import psutil
 import docker
+from bson.objectid import ObjectId
 from datetime import datetime, timedelta
 import time
 
@@ -249,6 +250,34 @@ class SystemProcessData(APIView):
 
             response = {
                 "message": "Successfully restarted"
+            }
+            return JsonResponse(response, safe=False, status=200)
+
+        except Exception as ex:
+            print("Error on line {}".format(sys.exc_info()[-1].tb_lineno), type(ex).__name__, ex)
+            error = {
+                "message": "something went wrong"
+            }
+            return JsonResponse(error, safe=False, status=500)
+
+
+class SystemData(APIView):
+
+    def post(self, request):
+        try:
+            parent_product_id = str(ObjectId())
+            data = request.data
+
+            if len(data) == 0:
+                error = {
+                    "message": "request body is missing"
+                }
+                return JsonResponse(error, safe=False, status=400)
+
+            es_url.index(index=index_name, id=str(parent_product_id), body=data)
+
+            response = {
+                "message": "Successfully Added the data"
             }
             return JsonResponse(response, safe=False, status=200)
 

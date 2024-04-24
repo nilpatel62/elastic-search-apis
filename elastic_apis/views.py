@@ -265,7 +265,6 @@ class SystemData(APIView):
 
     def post(self, request):
         try:
-            parent_product_id = str(ObjectId())
             data = request.data
             current = datetime.now()
             str_date = datetime.strftime(current, "%Y.%m.%d")
@@ -279,7 +278,8 @@ class SystemData(APIView):
                 }
                 return JsonResponse(error, safe=False, status=400)
 
-            es_url.index(index=data_add_index, id=str(parent_product_id), body=data)
+            res = es_url.index(index=data_add_index, body=data, op_type="create")
+            print(res['result'])
 
             response = {
                 "message": "Successfully Added the data"

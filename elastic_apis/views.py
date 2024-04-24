@@ -271,13 +271,13 @@ class SystemData(APIView):
             # data_add_index = ".ds-filebeat-8.13.2-"+str_date+"-000001"
             data_add_index = "filebeat-8.13.2"
             print(data_add_index)
-
+            timestamp = int(datetime.now().timestamp())
             if len(data) == 0:
                 error = {
                     "message": "request body is missing"
                 }
                 return JsonResponse(error, safe=False, status=400)
-
+            data['@timestamp'] = timestamp
             res = es_url.index(index=data_add_index, body=data, op_type="create")
             print(res['result'])
 

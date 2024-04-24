@@ -8,6 +8,8 @@ from bson.objectid import ObjectId
 from datetime import datetime, timedelta
 import time
 
+# Define the index name
+index_name = "filebeat-*"
 
 # Function to calculate CPU percentage
 def calculate_cpu_percent(d):
@@ -111,8 +113,6 @@ class ElasticData(APIView):
                     "size": size,
                     "from": page * 10,
                 }
-            # Define the index name
-            index_name = "filebeat-*"
 
             res_filter_parameters = es_url.search(
                 index=index_name,

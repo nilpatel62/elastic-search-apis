@@ -269,7 +269,7 @@ class SystemData(APIView):
             data = request.data
             current = datetime.now()
             str_date = datetime.strftime(current, "%Y.%m.%d")
-            data_add_index = ".ds.filebeat-8.13.2-"+str_date+"-000001"
+            data_add_index = "filebeat-8.13.2-"+str_date+"-000001"
 
             if len(data) == 0:
                 error = {

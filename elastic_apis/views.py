@@ -291,3 +291,69 @@ class SystemData(APIView):
                 "message": "something went wrong"
             }
             return JsonResponse(error, safe=False, status=500)
+
+
+    def get(self, request):
+        try:
+            interfaces_info = []
+            # CPU information
+            cpu_usage = psutil.cpu_percent(interval=1)  # Measures over one second
+            print(f"CPU Usage: {cpu_usage}%")
+
+            # Memory information
+            memory = psutil.virtual_memory()
+            memory_details = {
+                "memory_usage": f"{memory.percent}%",
+                "total_usage": f"{memory.total / (1024 ** 3):.2f} GB",
+                "available_memory": f"{memory.available / (1024 ** 3):.2f} GB"
+            }
+
+            # Disk information
+            disks_info = []
+            disks = psutil.disk_partitions()
+            for disk in disks:
+                usage = psutil.disk_usage(disk.mountpoint)
+                disks_info.append(
+                    {
+                        "mounted": f"Disk: {disk.device} mounted on {disk.mountpoint}",
+                        "size": f"{usage.total / (1024 ** 3):.2f} GB",
+                        "used_memory": f"{usage.used / (1024 ** 3):.2f} GB",
+                        "used_percentage": f"{usage.percent}%"
+                    }
+                )
+
+            # Network interfaces
+            interfaces_info = []
+            interfaces = psutil.net_if_addrs()
+            for interface_name, interface_addresses in interfaces.items():
+                print(f"Interface: {interface_name}")
+                address_info = []
+                for address in interface_addresses:
+                    address_info.append(
+                        {
+                            "family_name": f"{address.family.name}",
+                            "address": f"{address.address}",
+                        }
+                    )
+                interfaces_info.append(
+                    {
+                        "interface_name": interface_name,
+                        "address": address_info
+                    }
+                )
+
+            system_info = {
+                "cpu_uses": f"{cpu_usage}%",
+                "memory": memory_details,
+                "disk": disks_info,
+                "interface": interfaces_info
+            }
+            response = {"data": system_info, "message": "Data Found"}
+            return JsonResponse(response, safe=False, status=200)
+
+        except Exception as ex:
+            print("Error on line {}".format(sys.exc_info()[-1].tb_lineno), type(ex).__name__, ex)
+            error = {
+                "message": "something went wrong"
+            }
+            return JsonResponse(error, safe=False, status=500)

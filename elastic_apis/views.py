@@ -7,6 +7,7 @@ import docker
 from bson.objectid import ObjectId
 from datetime import datetime, timedelta
 import time
+from .forms import FileUploadForm
 
 # Define the index name
 index_name = "filebeat-*"
@@ -350,6 +351,31 @@ class SystemData(APIView):
             }
             response = {"data": system_info, "message": "Data Found"}
             return JsonResponse(response, safe=False, status=200)
+
+        except Exception as ex:
+            print("Error on line {}".format(sys.exc_info()[-1].tb_lineno), type(ex).__name__, ex)
+            error = {
+                "message": "something went wrong"
+            }
+            return JsonResponse(error, safe=False, status=500)
+
+
+class UploadPcapFile(APIView):
+
+    def post(self, request):
+        try:
+            form = FileUploadForm(request.POST, request.FILES)
+            if form.is_valid():
+                # handle the uploaded file
+                f = request.FILES['file']
+                file_path = os.path.join('uploads', f.name)
+
+                with open(file_path, 'wb+') as destination:
+                    for chunk in f.chunks():
+                        destination.write(chunk)
+                return JsonResponse({'message': 'File uploaded successfully!', 'file_path': file_path})
+            else:
+                return JsonResponse({'errors': form.errors}, status=400)
 
         except Exception as ex:
             print("Error on line {}".format(sys.exc_info()[-1].tb_lineno), type(ex).__name__, ex)

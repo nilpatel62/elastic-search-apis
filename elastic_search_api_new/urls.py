@@ -25,4 +25,5 @@ urlpatterns = [
     path('system/process/data', views.SystemProcessData.as_view(), name='SystemProcessData'),
     path('system/data', views.SystemData.as_view(), name='SystemData'),
     path('upload/file', views.UploadPcapFile.as_view(), name='UploadPcapFile'),
+    path('list-files/', views.ListFile.as_view(), name='ListFile'),
 ]

@@ -385,3 +385,21 @@ class UploadPcapFile(APIView):
                 "message": "something went wrong"
             }
             return JsonResponse(error, safe=False, status=500)
+
+
+class ListFile(APIView):
+
+    def get(self, request):
+        upload_dir = 'uploads'
+        base_path = os.path.abspath(upload_dir)  # Get absolute path of the upload directory
+        try:
+            # List all files in the directory
+            files = os.listdir(upload_dir)
+            # Construct a list of dictionaries with file names and their absolute paths
+            files_info = [{'name': file, 'path': os.path.join(base_path, file)}
+                          for file in files if os.path.isfile(os.path.join(upload_dir, file))]
+            return JsonResponse({'files': files_info})
+        except FileNotFoundError:
+            return JsonResponse({'error': 'Directory not found'}, status=404)
+        except Exception as e:
+            return JsonResponse({'error': str(e)}, status=500)

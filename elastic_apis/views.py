@@ -368,7 +368,9 @@ class UploadPcapFile(APIView):
             if form.is_valid():
                 # handle the uploaded file
                 f = request.FILES['file']
-                file_path = os.path.join('uploads', f.name)
+                upload_dir = 'uploads'
+                os.makedirs(upload_dir, exist_ok=True)  # Ensure the directory exists
+                file_path = os.path.join(upload_dir, f.name)
 
                 with open(file_path, 'wb+') as destination:
                     for chunk in f.chunks():

@@ -420,7 +420,7 @@ class ExecutePcapFile(APIView):
 
     def post(self, request):
         try:
-            data = request.body
+            data = request.data
             filenames = data.get('filenames')
             execution_type = data.get('execution_type', 1)
             if not filenames:

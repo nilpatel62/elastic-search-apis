@@ -27,4 +27,5 @@ urlpatterns = [
     path('upload/file', views.UploadPcapFile.as_view(), name='UploadPcapFile'),
     path('list-files/', views.ListFile.as_view(), name='ListFile'),
     path('execute/pcap/', views.ExecutePcapFile.as_view(), name='ExecutePcapFile'),
+    path('roles', user_view.AccessRoles.as_view(), name='AccessRoles'),
 ]

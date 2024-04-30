@@ -11,6 +11,17 @@ from .forms import FileUploadForm
 
 # Define the index name
 index_name = "filebeat-*"
+zeek_command_base = "zeek -C -r"
+suricata_command_base = "suricata -r"
+
+
+# Function to run commands
+def run_command(command):
+    try:
+        subprocess.run(command, shell=True, check=True)
+    except subprocess.CalledProcessError as e:
+        print(f"Error executing command: {command}\nError: {e}")
+
 
 # Function to calculate CPU percentage
 def calculate_cpu_percent(d):
@@ -403,3 +414,49 @@ class ListFile(APIView):
             return JsonResponse({'error': 'Directory not found'}, status=404)
         except Exception as e:
             return JsonResponse({'error': str(e)}, status=500)
+
+
+class ExecutePcapFile(APIView):
+
+    def post(self, request):
+        try:
+            data = request.body
+            filenames = data.get('filenames')
+            execution_type = data.get('execution_type', 1)
+            if not filenames:
+                return JsonResponse({'error': 'Filenames array is required in the JSON body.'}, status=400)
+            if not isinstance(filenames, list):
+                return JsonResponse({'error': 'Filenames must be an array.'}, status=400)
+
+            upload_dir = 'uploads'
+            results = []
+
+            for filename in filenames:
+                file_path = os.path.join(upload_dir, filename)
+                if not os.path.isfile(file_path) or not file_path.endswith('.pcap'):
+                    results.append({'filename': filename, 'error': 'File does not exist or is not a .pcap file.'})
+                    continue
+                if execution_type == 1:
+                    try:
+                        # Constructing and running the Zeek command
+                        zeek_command = f"{zeek_command_base} {file_path}"
+                        print(f"Running Zeek on {file_path}...")
+                        run_command(zeek_command)
+
+                        # Constructing and running the Suricata command
+                        suricata_command = f"{suricata_command_base} {file_path} -l /var/log/suricata"
+                        print(f"Running Suricata on {file_path}...")
+                        run_command(suricata_command)
+                    except Exception as e:
+                        results.append({'filename': filename, 'error': str(e)})
+                else:
+                    os.remove(file_path)
+                    print("File Removed Successfully..!!")
+            return JsonResponse({"message": "File Executed Successfully"}, status=200)
+        except Exception as ex:
+            print("Error on line {}".format(sys.exc_info()[-1].tb_lineno), type(ex).__name__, ex)
+            error = {
+                "message": "something went wrong"
+            }
+            return JsonResponse(error, safe=False, status=500)
+

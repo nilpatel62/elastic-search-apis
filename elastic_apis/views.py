@@ -312,6 +312,27 @@ class SystemData(APIView):
             cpu_usage = psutil.cpu_percent(interval=1)  # Measures over one second
             print(f"CPU Usage: {cpu_usage}%")
 
+            # Get the memory details
+            memory = psutil.virtual_memory()
+
+            # Total physical memory (in GB)
+            total_memory_gb = memory.total / (1024 ** 3)
+
+            # Used memory (in GB)
+            used_memory_gb = memory.used / (1024 ** 3)
+
+            print(f"Total Memory: {total_memory_gb:.2f} GB")
+            print(f"Used Memory: {used_memory_gb:.2f} GB")
+
+            cpu_details = {
+                "id": 1,
+                "title": 'CPU',
+                "metric": f"{used_memory_gb:.2f} GB",
+                "fill": '#3872FA',
+                "percentage": int(cpu_usage),
+                "value": 'used of '+f"{total_memory_gb:.2f}"+' GB',
+            }
+
             # Memory information
             memory = psutil.virtual_memory()
             memory_details = {
@@ -358,7 +379,9 @@ class SystemData(APIView):
                 "cpu_uses": f"{cpu_usage}%",
                 "memory": memory_details,
                 "disk": disks_info,
-                "interface": interfaces_info
+                "interface": interfaces_info,
+                "cpu_details": cpu_details
+
             }
             response = {"data": system_info, "message": "Data Found"}
             return JsonResponse(response, safe=False, status=200)

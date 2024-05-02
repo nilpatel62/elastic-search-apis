@@ -346,10 +346,10 @@ class SystemData(APIView):
                 {
                     "id": 2,
                     "title": 'MEMORY',
-                    "metric": f"{memory.total / (1024 ** 3):.2f} GB",
+                    "metric": f"{memory.available / (1024 ** 3):.2f} GB",
                     "fill": '#3872FA',
                     "percentage": int(memory.percent),
-                    "value": 'used of ' + f"{memory.available / (1024 ** 3):.2f} GB",
+                    "value": 'used of ' + f"{memory.total / (1024 ** 3):.2f} GB",
                 }
             )
             # Disk information

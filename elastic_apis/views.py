@@ -211,6 +211,7 @@ class SystemProcessData(APIView):
 
                 containers_info.append({
                     'name': f"{name}",
+                    'title': f"{name}",
                     'status': f"{status}",
                     "id": f"{id}",
                     'cpu_percent': f"{cpu_percent}",
@@ -307,6 +308,7 @@ class SystemData(APIView):
 
     def get(self, request):
         try:
+            chart_data = []
             interfaces_info = []
             # CPU information
             cpu_usage = psutil.cpu_percent(interval=1)  # Measures over one second
@@ -332,7 +334,7 @@ class SystemData(APIView):
                 "percentage": int(cpu_usage),
                 "value": 'used of '+f"{total_memory_gb:.2f}"+' GB',
             }
-
+            chart_data.append(cpu_details)
             # Memory information
             memory = psutil.virtual_memory()
             memory_details = {
@@ -340,7 +342,16 @@ class SystemData(APIView):
                 "total_usage": f"{memory.total / (1024 ** 3):.2f} GB",
                 "available_memory": f"{memory.available / (1024 ** 3):.2f} GB"
             }
-
+            chart_data.append(
+                {
+                    "id": 2,
+                    "title": 'MEMORY',
+                    "metric": f"{memory.total / (1024 ** 3):.2f} GB",
+                    "fill": '#3872FA',
+                    "percentage": int(memory.percent),
+                    "value": 'used of ' + f"{memory.available / (1024 ** 3):.2f} GB",
+                }
+            )
             # Disk information
             disks_info = []
             disks = psutil.disk_partitions()
@@ -370,18 +381,20 @@ class SystemData(APIView):
                     )
                 interfaces_info.append(
                     {
-                        "interface_name": interface_name,
+                        "value": str(len(address_info))+'%',
+                        "percentage": len(address_info),
+                        "color": '#10b981',
+                        "name": interface_name,
                         "address": address_info
                     }
                 )
 
-            system_info = {
-                "cpu_uses": f"{cpu_usage}%",
-                "memory": memory_details,
-                "disk": disks_info,
-                "interface": interfaces_info,
-                "cpu_details": cpu_details
+            # chart_data.append()
 
+            system_info = {
+                "disk": disks_info,
+                "cpu_details": chart_data,
+                "interface": interfaces_info
             }
             response = {"data": system_info, "message": "Data Found"}
             return JsonResponse(response, safe=False, status=200)

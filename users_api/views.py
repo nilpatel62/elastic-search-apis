@@ -4,6 +4,11 @@ from rest_framework.views import APIView
 from django.http import HttpResponse, JsonResponse
 from elastic_search_api_new.settings import es_url
 import os, sys
+from django.contrib.auth.models import User
+from django.contrib.auth import authenticate
+from rest_framework.authtoken.views import ObtainAuthToken
+from rest_framework.authtoken.models import Token
+from rest_framework.response import Response
 
 # Define the index name
 user_index_name = "users"
@@ -215,6 +220,7 @@ class UsersData(APIView):
             data = request.data
             name = data.get("name")
             email = data.get("email")
+            password = data.get("password")
             role_id = data.get("role")
             status = data.get("status")
             permission = data.get("permission")
@@ -226,6 +232,10 @@ class UsersData(APIView):
                 return JsonResponse({'error': 'email is required in the JSON body.'}, status=400)
             if not isinstance(email, str):
                 return JsonResponse({'error': 'email must be an string.'}, status=400)
+            if not password:
+                return JsonResponse({'error': 'password is required in the JSON body.'}, status=400)
+            if not isinstance(password, str):
+                return JsonResponse({'error': 'password must be an string.'}, status=400)
             if not role_id:
                 return JsonResponse({'error': 'role is required in the JSON body.'}, status=400)
             if not isinstance(role_id, str):
@@ -267,13 +277,15 @@ class UsersData(APIView):
                 json_data = {
                     "name": name,
                     "email":  email,
+                    "password":  password,
                     "role": role_id,
                     "status": status,
                     "permission": permission,
                     "timestamp": int(datetime.datetime.now().timestamp())
                 }
                 es_url.index(index=role_index_name, body=json_data, op_type="create")
-
+                user = User.objects.create_user(name, email, password)
+                user.save()
                 response = {
                     "message": "Successfully Added the User"
                 }
@@ -431,6 +443,27 @@ class UsersData(APIView):
                 }
                 return JsonResponse(response, safe=False, status=200)
 
+        except Exception as ex:
+            print("Error on line {}".format(sys.exc_info()[-1].tb_lineno), type(ex).__name__, ex)
+            error = {
+                "message": "something went wrong"
+            }
+            return JsonResponse(error, safe=False, status=500)
+
+
+class UserAuthenticate(APIView):
+    def post(self, request, *args, **kwargs):
+        try:
+            serializer = self.serializer_class(data=request.data,
+                                               context={'request': request})
+            serializer.is_valid(raise_exception=True)
+            user = serializer.validated_data['user']
+            token, created = Token.objects.get_or_create(user=user)
+            return Response({
+                'token': token.key,
+                'user_id': user.pk,
+                'email': user.email
+            })
         except Exception as ex:
             print("Error on line {}".format(sys.exc_info()[-1].tb_lineno), type(ex).__name__, ex)
             error = {

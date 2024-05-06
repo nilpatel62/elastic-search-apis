@@ -29,4 +29,5 @@ urlpatterns = [
     path('execute/pcap/', views.ExecutePcapFile.as_view(), name='ExecutePcapFile'),
     path('roles', user_view.AccessRoles.as_view(), name='AccessRoles'),
     path('users', user_view.UsersData.as_view(), name='UsersData'),
+    path('authenticate', user_view.UserAuthenticate.as_view(), name='UserAuthenticate'),
 ]

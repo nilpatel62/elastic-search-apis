@@ -9,6 +9,7 @@ from django.contrib.auth import authenticate
 from rest_framework.authtoken.views import ObtainAuthToken
 from rest_framework.authtoken.models import Token
 from rest_framework.response import Response
+from rest_framework.permissions import IsAuthenticated  # <-- Here
 
 # Define the index name
 user_index_name = "users"
@@ -17,6 +18,7 @@ role_index_name = "roles"
 
 # Create your views here.
 class AccessRoles(APIView):
+    permission_classes = (IsAuthenticated,)
     def post(self, request):
         try:
             data = request.data
@@ -215,6 +217,8 @@ class AccessRoles(APIView):
 
 
 class UsersData(APIView):
+    permission_classes = (IsAuthenticated,)
+
     def post(self, request):
         try:
             data = request.data
@@ -250,30 +254,33 @@ class UsersData(APIView):
                 return JsonResponse({'error': 'status must be a string.'}, status=400)
 
             must_query = []
-            must_query.append({"match_phrase_prefix": {"name": name}})
-            must_query.append({"match_phrase_prefix": {"email": email}})
+            must_query.append({"match": {"email": email}})
             ## first need to check if we have already added role in database with the same name
             search_query = {
                 "query": {
                     "bool": {
-                        "must": must_query,
-                        "minimum_should_match": 1,
-                        "boost": 1.0,
+                        "must": must_query
                     }
                 },
-                "size": 0,
-                "from": 1 * 10,
+                "size": 1,
+                "from": 1,
             }
 
-            res_filter_parameters = es_url.search(
-                index=user_index_name,
-                body=search_query,
-                filter_path=[
-                    "hits.hits._id",
-                    "hits.hits._source.name",
-                ],
-            )
+            try:
+                res_filter_parameters = es_url.search(
+                    index=user_index_name,
+                    body=search_query,
+                    filter_path=[
+                        "hits.hits._id",
+                        "hits.hits._source.name",
+                    ],
+                )
+            except:
+                res_filter_parameters = []
+            print(res_filter_parameters)
             if len(res_filter_parameters) == 0:
+                user = User.objects.create_user(name, email, password)
+                user.save()
                 json_data = {
                     "name": name,
                     "email":  email,
@@ -283,16 +290,14 @@ class UsersData(APIView):
                     "permission": permission,
                     "timestamp": int(datetime.datetime.now().timestamp())
                 }
-                es_url.index(index=role_index_name, body=json_data, op_type="create")
-                user = User.objects.create_user(name, email, password)
-                user.save()
+                es_url.index(index=user_index_name, body=json_data, op_type="create")
                 response = {
                     "message": "Successfully Added the User"
                 }
                 return JsonResponse(response, safe=False, status=201)
             else:
                 response = {
-                    "message": "User already added with same name and email"
+                    "message": "User already added with same email"
                 }
                 return JsonResponse(response, safe=False, status=409)
 
@@ -454,16 +459,17 @@ class UsersData(APIView):
 class UserAuthenticate(APIView):
     def post(self, request, *args, **kwargs):
         try:
-            serializer = self.serializer_class(data=request.data,
-                                               context={'request': request})
-            serializer.is_valid(raise_exception=True)
-            user = serializer.validated_data['user']
-            token, created = Token.objects.get_or_create(user=user)
-            return Response({
-                'token': token.key,
-                'user_id': user.pk,
-                'email': user.email
-            })
+            username = User.objects.get(email=(request.data['email']).lower()).username
+            user = authenticate(username=username, password=request.data['password'])
+            if user:
+                token, created = Token.objects.get_or_create(user=user)
+                return Response({
+                    'token': token.key,
+                    'user_id': user.pk,
+                    'email': user.email
+                })
+            else:
+                return Response({'error': 'Invalid credentials'}, status=401)
         except Exception as ex:
             print("Error on line {}".format(sys.exc_info()[-1].tb_lineno), type(ex).__name__, ex)
             error = {

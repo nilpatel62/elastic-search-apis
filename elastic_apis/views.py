@@ -8,6 +8,7 @@ from bson.objectid import ObjectId
 from datetime import datetime, timedelta
 import time
 from .forms import FileUploadForm
+from rest_framework.permissions import IsAuthenticated  # <-- Here
 
 # Define the index name
 index_name = "filebeat-*"
@@ -74,6 +75,7 @@ def get_memory_usage(container_stats):
 
 # Create your views here.
 class ElasticData(APIView):
+    permission_classes = (IsAuthenticated,)
     """
         API view for fetching data from Elasticsearch based on a search query.
 
@@ -161,6 +163,7 @@ class ElasticData(APIView):
 
 
 class SystemProcessData(APIView):
+    permission_classes = (IsAuthenticated,)
     def get(self, request):
         try:
             ## get the docker details
@@ -275,7 +278,7 @@ class SystemProcessData(APIView):
 
 
 class SystemData(APIView):
-
+    permission_classes = (IsAuthenticated,)
     def post(self, request):
         try:
             data = request.data
@@ -408,7 +411,7 @@ class SystemData(APIView):
 
 
 class UploadPcapFile(APIView):
-
+    permission_classes = (IsAuthenticated,)
     def post(self, request):
         try:
             form = FileUploadForm(request.POST, request.FILES)
@@ -435,7 +438,7 @@ class UploadPcapFile(APIView):
 
 
 class ListFile(APIView):
-
+    permission_classes = (IsAuthenticated,)
     def get(self, request):
         upload_dir = 'uploads'
         base_path = os.path.abspath(upload_dir)  # Get absolute path of the upload directory
@@ -453,7 +456,7 @@ class ListFile(APIView):
 
 
 class ExecutePcapFile(APIView):
-
+    permission_classes = (IsAuthenticated,)
     def post(self, request):
         try:
             data = request.data

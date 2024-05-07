@@ -217,7 +217,6 @@ class AccessRoles(APIView):
 
 
 class UsersData(APIView):
-    permission_classes = (IsAuthenticated,)
 
     def post(self, request):
         try:
